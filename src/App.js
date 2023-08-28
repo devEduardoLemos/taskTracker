@@ -6,7 +6,7 @@ import Tasks from "./components/Tasks";
 import AddTaks from "./components/AddTaks";
 import About from "./components/About";
 import { db } from "./config/Firebase";
-import { collection, getDocs, query } from "firebase/firestore";
+import { collection, deleteDoc, getDocs, query, where, doc, addDoc, updateDoc, getDoc } from "firebase/firestore";
 
 function App() {
 
@@ -23,69 +23,47 @@ function App() {
   }, [])
 
   const tasksRef = collection(db, "tasks");
+  const getAllTasksDoc = query(tasksRef);
 
-  const tasksDoc = query(tasksRef);
   //fetch tasks
   const fetchTasks = async () => {
-    // const res = await fetch('http://localhost:3000/tasks.json')res.json()
-    const data = await getDocs(tasksDoc)
-    const treatedData = data.docs.map(doc => doc.data())
-
+    const data = await getDocs(getAllTasksDoc)
+    const treatedData = data.docs.map(doc => ({ ...doc.data(), id: doc.id }))
     return treatedData
   }
 
-  const fetchTask = async (id) => {
-    const res = await fetch(`http://localhost:3000/tasks/${id}`)
-    const data = await res.json()
+  // const fetchTask = async (entry) => {
 
-    return data
-  }
+
+  //   return treatedData
+  // }
 
   //add task
   const addTask = async (task) => {
-    // const id = Math.floor(Math.random() * 10000) + 1
-    // const newTask = { id, ...task }
-    // setTasks([...tasks, newTask])
-    const res = await fetch('http://localhost:3000/tasks',
-      {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify(task)
-      })
+    const docRef = await addDoc(tasksRef, task)
 
-    const data = await res.json()
-
-    setTasks([...tasks, data])
-
+    setTasks([...tasks, { ...task, id: docRef.id }])
   }
 
   //delete task
   const deleteTask = async (id) => {
-    await fetch(`http://localhost:5000/tasks/${id}`, { method: 'DELETE' })
+    const taskToDelete = doc(db, "tasks", id)
+    await deleteDoc(taskToDelete);
 
     setTasks(tasks.filter((task) => task.id !== id))
   }
 
   //toggle reminder
-  const toggleRiminder = async (id) => {
-    const taskToToggle = await fetchTask(id)
+  const toggleRiminder = async (entry) => {
+    const docRef = doc(db, "tasks", entry);
+    const data = await getDoc(docRef);
+    const taskToToggle = { ...data.data(), id: entry }
     const upDateTask = { ...taskToToggle, reminder: !taskToToggle.reminder }
 
-    const res = await fetch(`http://localhost:5000/tasks/${id}`,
-      {
-        method: 'PUT',
-        headers: {
-          'Content-type': 'application/json'
-        },
-        body: JSON.stringify(upDateTask)
-      })
-
-    const data = await res.json()
+    updateDoc(docRef, upDateTask)
 
     setTasks(tasks.map((task) =>
-      task.id === id ? { ...task, reminder: data.reminder } : task
+      task.id === entry ? { ...task, reminder: upDateTask.reminder } : task
     ))
   }
 
@@ -100,13 +78,14 @@ function App() {
           <Route path="/" element={
             <>
               {showAddTask && <AddTaks onAdd={addTask} />}
-
-              <Tasks
-                tasks={tasks}
-                onDelete={deleteTask}
-                onToggle={toggleRiminder} />)
-              : ('No tasks to show')
-
+              {tasks.length !== 0 ?
+                (<Tasks
+                  tasks={tasks}
+                  onDelete={deleteTask}
+                  onToggle={toggleRiminder}
+                />)
+                : (<p>no tasks to show</p>)
+              }
             </>
           }
           />
