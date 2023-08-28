@@ -5,6 +5,8 @@ import Footer from "./components/Footer";
 import Tasks from "./components/Tasks";
 import AddTaks from "./components/AddTaks";
 import About from "./components/About";
+import { db } from "./config/Firebase";
+import { collection, getDocs, query } from "firebase/firestore";
 
 function App() {
 
@@ -20,16 +22,20 @@ function App() {
     getTasks()
   }, [])
 
+  const tasksRef = collection(db, "tasks");
+
+  const tasksDoc = query(tasksRef);
   //fetch tasks
   const fetchTasks = async () => {
-    const res = await fetch('http://localhost:5000/tasks')
-    const data = await res.json()
+    // const res = await fetch('http://localhost:3000/tasks.json')res.json()
+    const data = await getDocs(tasksDoc)
+    const treatedData = data.docs.map(doc => doc.data())
 
-    return data
+    return treatedData
   }
 
   const fetchTask = async (id) => {
-    const res = await fetch(`http://localhost:5000/tasks/${id}`)
+    const res = await fetch(`http://localhost:3000/tasks/${id}`)
     const data = await res.json()
 
     return data
@@ -40,7 +46,7 @@ function App() {
     // const id = Math.floor(Math.random() * 10000) + 1
     // const newTask = { id, ...task }
     // setTasks([...tasks, newTask])
-    const res = await fetch('http://localhost:5000/tasks',
+    const res = await fetch('http://localhost:3000/tasks',
       {
         method: 'POST',
         headers: {
@@ -94,13 +100,13 @@ function App() {
           <Route path="/" element={
             <>
               {showAddTask && <AddTaks onAdd={addTask} />}
-              {tasks.length > 0 ? (
-                <Tasks
-                  tasks={tasks}
-                  onDelete={deleteTask}
-                  onToggle={toggleRiminder} />)
-                : ('No tasks to show')
-              }
+
+              <Tasks
+                tasks={tasks}
+                onDelete={deleteTask}
+                onToggle={toggleRiminder} />)
+              : ('No tasks to show')
+
             </>
           }
           />
