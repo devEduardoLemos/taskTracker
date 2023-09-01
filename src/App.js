@@ -3,7 +3,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import About from "./components/About";
 import { Home } from "./pages/Home"
-import { AddTask } from "./components/AddTask";
+import { AddTask } from "./pages/AddTask";
 
 function App() {
   return (
