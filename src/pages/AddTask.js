@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { addTask, getTask, updateTask } from "./Functions"
+import { addTask, getTask, updateTask } from "../components/Functions"
 import { useLocation, useNavigate } from "react-router-dom"
 
 export const AddTask = () => {
