@@ -1,10 +1,32 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { addTask, getTask, updateTask } from "../components/Functions"
+import { useLocation, useNavigate } from "react-router-dom"
 
-const AddTaks = ({ onAdd }) => {
+export const AddTask = () => {
 
-    const [text, setText] = useState('')
-    const [day, setDay] = useState('')
-    const [reminder, setReminder] = useState(false)
+    const [text, setText] = useState('');
+    const [day, setDay] = useState('');
+    const [reminder, setReminder] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    let taskId = null;
+    if (location.state && location.state.taskId) {
+        taskId = location.state.taskId
+    }
+
+    const getTaskToEdit = async () => {
+        if (taskId === null) return
+
+        const taskData = await getTask(taskId)
+        setText(taskData.text)
+        setDay(taskData.day)
+        setReminder(taskData.reminder)
+    }
+
+    useEffect(() => {
+        getTaskToEdit()
+    }, [])
 
     const onSubmit = e => {
         e.preventDefault()
@@ -13,11 +35,10 @@ const AddTaks = ({ onAdd }) => {
             alert('Please add a task')
             return
         }
-        onAdd({ text, day, reminder })
 
-        setText('')
-        setDay('')
-        setReminder(false)
+        taskId === null ? (addTask({ text, day, reminder })) : (updateTask(taskId, { text, day, reminder }))
+        navigate("/")
+
     }
     return (
         <form className="add-form" onSubmit={onSubmit}>
@@ -33,7 +54,7 @@ const AddTaks = ({ onAdd }) => {
             <div className="form-control">
                 <label>Day & Time</label>
                 <input
-                    type="text"
+                    type="datetime-local"
                     placeholder="Add Day & Time"
                     value={day}
                     onChange={e => setDay(e.target.value)}
@@ -53,5 +74,3 @@ const AddTaks = ({ onAdd }) => {
         </form>
     )
 }
-
-export default AddTaks

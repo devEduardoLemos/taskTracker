@@ -1,37 +1,31 @@
-import PropTypes from 'prop-types'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Button from './Button'
 
-const Header = ({ title, onAdd, showAdd }) => {
+const Header = () => {
 
     const location = useLocation()
+    const navigate = useNavigate();
 
     return (
         <header>
-            <h1>{title}</h1>
+            <h1>Task Tracker</h1>
             {location.pathname === '/' && (
                 <Button
-                    color={showAdd ? 'red' : 'green'}
-                    text={showAdd ? 'close' : 'add'}
-                    onClick={onAdd}
+                    color={'green'}
+                    text={'add'}
+                    onClick={() => navigate('/add')}
+                />
+            )}
+
+            {location.pathname === '/add' && (
+                <Button
+                    color={'red'}
+                    text={'close'}
+                    onClick={() => navigate('/')}
                 />
             )}
         </header>
     )
 }
-
-Header.defaultProps = {
-    title: 'Task Tracker',
-}
-
-Header.prototypes = {
-    title: PropTypes.string.isRequired,
-}
-
-//CSS in JS
-// const headingStyle = {
-//     color: 'red',
-//     backgroundColor: 'black'
-// }
 
 export default Header
